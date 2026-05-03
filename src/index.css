@@ -1,0 +1,312 @@
+:root {
+  --bg-color: #f4f1ea;
+  --text-color: #2c2c2c;
+  --accent-color: #ff4757;
+  --line-color: #3d3d3d;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Kalam', cursive;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%232c2c2c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg>') 12 12, auto;
+}
+
+/* Custom Pointer for Clickables */
+a, button, .pointer {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23ff4757" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>') 12 12, pointer !important;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+.canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  cursor: default;
+}
+
+.canvas-container.pointer {
+  cursor: pointer;
+}
+
+/* Paper Texture Overlay */
+.paper-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.15;
+  mix-blend-mode: multiply;
+  background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png");
+}
+
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 11;
+  opacity: 0.05;
+  background-image: url("https://www.transparenttextures.com/patterns/stardust.png");
+}
+
+/* Hand-drawn UI Elements */
+.ui-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2rem;
+}
+
+.ui-element {
+  pointer-events: auto;
+}
+
+.sketch-border {
+  border: 3px solid var(--line-color);
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+  padding: 1rem;
+  background: white;
+}
+
+.hand-drawn-btn {
+  background: none;
+  border: none;
+  font-family: 'Permanent Marker', cursive;
+  font-size: 1.5rem;
+  cursor: pointer;
+  position: relative;
+  padding: 0.5rem 1rem;
+  transition: transform 0.2s;
+}
+
+.hand-drawn-btn:hover {
+  transform: scale(1.1) rotate(-2deg);
+}
+
+.hand-drawn-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--accent-color);
+  border-radius: 5px;
+  transform: skewX(-15deg);
+}
+
+/* Audio Control */
+.audio-toggle {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 20;
+  background: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--line-color);
+  cursor: pointer;
+  box-shadow: 4px 4px 0px var(--line-color);
+}
+
+.audio-toggle:active {
+  box-shadow: 1px 1px 0px var(--line-color);
+  transform: translate(3px, 3px);
+}
+
+/* Room Overlay */
+.room-content-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-color);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.room-content {
+  text-align: center;
+  max-width: 600px;
+  padding: 2rem;
+  border: 4px solid var(--line-color);
+  border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+  background: white;
+}
+
+.room-content h2 {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.room-content p {
+  font-size: 1.5rem;
+  line-height: 1.5;
+}
+
+.close-btn {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  font-size: 2rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .ui-layer {
+    padding: 1rem;
+  }
+  
+  .top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: auto;
+  }
+  
+  .menu-container {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem !important;
+    padding: 0.5rem;
+  }
+  
+  .hand-drawn-btn {
+    font-size: 1rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .logo-text {
+    font-size: 1.5rem !important;
+  }
+  
+  .mobile-menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
+  }
+  
+  .audio-toggle {
+    bottom: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .room-content {
+    max-width: 95vw !important;
+    padding: 1rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .room-content h2 {
+    font-size: 2rem;
+  }
+  
+  .room-content p, .room-content li {
+    font-size: 1rem !important;
+  }
+
+  .close-btn {
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.2rem;
+    z-index: 200;
+    background: rgba(255,255,255,0.9);
+    border-radius: 8px;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* Hide mobile menu button on desktop */
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none;
+  }
+  .logo-text {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 2.5rem;
+    pointer-events: auto;
+  }
+}
+
+/* Loading Screen Styles */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f4f1ea;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 1s ease-in-out;
+}
+.loading-screen.fade-out {
+  transform: translateY(-100%);
+}
+.sketchbook-animation {
+  text-align: center;
+}
+.loading-text {
+  font-family: 'Kalam', cursive;
+  margin-top: 2rem;
+  color: #3d3d3d;
+}
+.pencil-drawing {
+  animation: wobble 0.5s infinite;
+}
+@keyframes wobble {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(1deg); }
+  75% { transform: rotate(-1deg); }
+  100% { transform: rotate(0deg); }
+}
