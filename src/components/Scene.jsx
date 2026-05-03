@@ -12,16 +12,41 @@ const Scene = ({ activeRoom, setActiveRoom }) => {
   const [animatingToRoom, setAnimatingToRoom] = useState(false)
   const [previousRoom, setPreviousRoom] = useState(null)
   
-  // Track mouse for parallax effect
+  // Track mouse/touch for parallax effect
   const mouse = useRef({ x: 0, y: 0 })
+  const smoothMouse = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
     const handleMouseMove = (e) => {
       mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1
       mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1
     }
+
+    const handleTouchMove = (e) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0]
+        mouse.current.x = (touch.clientX / window.innerWidth) * 2 - 1
+        mouse.current.y = -(touch.clientY / window.innerHeight) * 2 + 1
+      }
+    }
+
+    // Device orientation for mobile tilt-to-look
+    const handleOrientation = (e) => {
+      if (e.gamma !== null && e.beta !== null) {
+        mouse.current.x = Math.max(-1, Math.min(1, e.gamma / 30))
+        mouse.current.y = Math.max(-1, Math.min(1, (e.beta - 60) / 30))
+      }
+    }
+
     window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    window.addEventListener('deviceorientation', handleOrientation, true)
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('deviceorientation', handleOrientation, true)
+    }
   }, [])
 
   // Pre-calculate the camera path
@@ -119,26 +144,29 @@ const Scene = ({ activeRoom, setActiveRoom }) => {
   useFrame((state, delta) => {
     if (activeRoom || animatingToRoom) return
 
-    // Get scroll progress (0 to 1) and clamp it to avoid Three.js undefined errors
+    // Smooth out mouse input to prevent jerky movement
+    smoothMouse.current.x += (mouse.current.x - smoothMouse.current.x) * 0.05
+    smoothMouse.current.y += (mouse.current.y - smoothMouse.current.y) * 0.05
+
+    // Get scroll progress (0 to 1) and clamp it
     const offset = Math.max(0, Math.min(1, scroll.offset || 0))
     
     // Calculate position on the path
     const point = path.getPointAt(offset)
     const lookAtPoint = path.getPointAt(Math.min(offset + 0.01, 1))
 
-    // Smoothly move camera safely with parallax
+    // Smoothly move camera with gentle parallax
     if (point && lookAtPoint) {
-      // Very slight positional shift opposite to the mouse
       const targetPosition = point.clone()
-      targetPosition.x -= mouse.current.x * 0.2
-      targetPosition.y -= mouse.current.y * 0.2
+      targetPosition.x -= smoothMouse.current.x * 0.15
+      targetPosition.y -= smoothMouse.current.y * 0.1
 
-      camera.position.lerp(targetPosition, 0.1)
+      camera.position.lerp(targetPosition, 0.08)
       
-      // Much stronger lookAt shift towards the mouse
+      // Look toward mouse direction
       const targetLookAt = lookAtPoint.clone()
-      targetLookAt.x += mouse.current.x * 2.5
-      targetLookAt.y += mouse.current.y * 1.5
+      targetLookAt.x += smoothMouse.current.x * 1.5
+      targetLookAt.y += smoothMouse.current.y * 0.8
       
       camera.lookAt(targetLookAt)
     }
