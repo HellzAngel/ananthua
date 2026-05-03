@@ -12,40 +12,28 @@ const Scene = ({ activeRoom, setActiveRoom }) => {
   const [animatingToRoom, setAnimatingToRoom] = useState(false)
   const [previousRoom, setPreviousRoom] = useState(null)
   
-  // Track mouse/touch for parallax effect
+  // Track mouse for parallax (desktop only — touch conflicts with scroll on mobile)
   const mouse = useRef({ x: 0, y: 0 })
   const smoothMouse = useRef({ x: 0, y: 0 })
+  const isMobile = useRef(window.innerWidth < 768)
 
   useEffect(() => {
     const handleMouseMove = (e) => {
+      if (isMobile.current) return
       mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1
       mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1
     }
 
-    const handleTouchMove = (e) => {
-      if (e.touches.length === 1) {
-        const touch = e.touches[0]
-        mouse.current.x = (touch.clientX / window.innerWidth) * 2 - 1
-        mouse.current.y = -(touch.clientY / window.innerHeight) * 2 + 1
-      }
-    }
-
-    // Device orientation for mobile tilt-to-look
-    const handleOrientation = (e) => {
-      if (e.gamma !== null && e.beta !== null) {
-        mouse.current.x = Math.max(-1, Math.min(1, e.gamma / 30))
-        mouse.current.y = Math.max(-1, Math.min(1, (e.beta - 60) / 30))
-      }
+    const handleResize = () => {
+      isMobile.current = window.innerWidth < 768
     }
 
     window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('touchmove', handleTouchMove, { passive: true })
-    window.addEventListener('deviceorientation', handleOrientation, true)
+    window.addEventListener('resize', handleResize)
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('touchmove', handleTouchMove)
-      window.removeEventListener('deviceorientation', handleOrientation, true)
+      window.removeEventListener('resize', handleResize)
     }
   }, [])
 
